@@ -1,0 +1,4 @@
+github "robrix/Box" "1.2.2"
+github "appsquickly/Typhoon" "3.3.3"
+github "antitypical/Result" "0.4.5"
+github "ReactiveCocoa/ReactiveCocoa" "v3.0.0"

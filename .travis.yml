@@ -1,0 +1,29 @@
+language: objective-c
+osx_image: xcode6.4
+before_install:
+  - openssl aes-256-cbc -k "$ENCRYPTION_SECRET" -in scripts/profiles/WildcardDist.mobileprovision.enc -d -a -out scripts/profiles/WildcardDist.mobileprovision
+  - openssl aes-256-cbc -k "$ENCRYPTION_SECRET" -in scripts/certs/ios_development.cer.enc -d -a -out scripts/certs/ios_development.cer
+  - openssl aes-256-cbc -k "$ENCRYPTION_SECRET" -in scripts/certs/ios_distribution.cer.enc -d -a -out scripts/certs/ios_distribution.cer
+  - openssl aes-256-cbc -k "$ENCRYPTION_SECRET" -in scripts/certs/dev.p12.enc -d -a -out scripts/certs/dev.p12
+  - ./scripts/add-key.sh
+  - curl -L -O https://github.com/Carthage/Carthage/releases/download/0.9.2/Carthage.pkg
+  - sudo installer -pkg Carthage.pkg -target /
+  - carthage bootstrap --verbose --platform iOS
+before_script:
+  - ./scripts/update-bundle.sh
+script:
+  - xctool test -project todo-split-objc.xcodeproj -scheme todo-split-objc -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 6'
+after_script:
+  - ./scripts/remove-key.sh
+env:
+  global:
+    - APP_NAME="todo-split"
+    - 'DEVELOPER_NAME="iPhone Distribution: akiraspeirs@gmail.com (GG7WCKRC5T)"'
+    - DEV_PROFILE_NAME="WildcardDev"
+    - DIST_PROFILE_NAME="WildcardDist"
+    - INFO_PLIST="todo-split-objc/Info.plist"
+    - BUNDLE_DISPLAY_NAME="todo-split"
+    - secure: fVq94TOJ0p0dRFv3zl0LKunH7qy3PR4DF3YhnMxqaTZ31uhvQOMzraLVGsxz0QW2aIHlFfPCFBj+ApSdledBjIjcw/Afdj7kMQzfOS8ok77ibROE/CAW0daVc2lSs3K6QhaHz121Cvp3j/qlB7Vge+pwVJGSb05cjWVNgG7w88zrfRK8IeMNJF3YPcnt3QqNe1AUsXUldtn9MotGJEPtqT450lIOjQPaBtHa3/CrUavcg6zHHR+O1kxHrnvgtbpM6FW1U6zwk+C+r9AmcVMp7j1a2vQ1P+Jhku+cigA0KzTWzNy8Uoe2m1dfxW2UwcT2XfM5ea5oapgoCk2NFXdNq+WU8k3+6R3o1sA9y9Sl4t7j2eQ/x56RZSVX34pEF0NA5lsPj5pEe/L1XGCN1xBnsOmTce5uYvn9AYep1d2BjOGLSn+5I5bkhObrs6ix+ptWFprFkUx0m2n6GeGwPGZoGpd3cPZqN/7SUSJGiNU1bljONJkllhI3LjtLWKUxW4Hgx469jsPRjGEePJTWcGH9Dut4DH/IjrtHcYiP6X8nMvLYVGvrapCJv5CjZJ6Lo7i1gU8tetf6hdkGcqJrw0BHQVPLTMS32UAoKt3+35Iei53ZFqCl/DvQT/65+HBKLscNuWa8yIZ+2NMYXhupRz4wzdqSUHEGMO+ATMidu2Dzjos=
+    - secure: bDVqOKVo8sJiTRzLaGcwe8SQ8m/fkbMB/D7NxLURU+EVmNGwGeaMqtILaFZTqDTkzMeUWc5GpXVBKmIzW9BJhzBWwEvwLeqqxaVwJGdIS3BgQX6o7qrxfPbhmXeUgSqvj+p6bODQQEZ5dWJEGuoqVD5KMtsBpwr4qLCdlDRMUU+ztBIyX9+rhMFMD8DPCnQeUF2xtbr747OImCLoPXRPid6NUrUgcIBp9xJ/2zO6AnytHlpIPnmEprjMxaD/vGFEnNzaiDbGoejKWl8X4ZOMBq+QMhGRcBJpCoV8ioW8MBTGgfSkTq8Yy3k6adDfB4qDQeK6sK80VeX2qIYe7fcGhOiHFgJkyGfez33uqx3sNv8GbwQbBiQpzeY0RoK415KUhXE7DEZEo6WXEsY94SrU2c+yuDzvIWYInXBV+gs0FALkqrpfO3pM6L2M1cqAxDp9hFXOSE4hUPWl4n06VkXgtMMYCOYSkxVguItMNC01ij6ml+knUld8I3cW2PvUUJ6WMfe3ya/yIjaCD96KhbH/+2b/s1cS61OnVKWAZ818fzeLrB6iJCLtnrVKtSG2G4QDRqcfOvDjLDGxQDLm5rx4LlJmUeGKF2zx3IOHjCaK6EmmQP3VfEIX6TN2UE7u45+zko2Eol0RElGLGTmUejn5qN3gAUdqxywiAGrDvA5dgGw=
+    - secure: R8zJHsZu6YypF8p3rufjnuxvCFbQKwZnNW84YvMCBNNW/9kaHfO0pduw8phvOFqkM7ihxuGfnPjvGic38jwvkfYHrDkaHyIgQwnFSoLWpuPBaHZ1PgiNsryf2zqSHFInX+Pxf6k/uiV3VvE9sAoEIWEt1fFeyidnPqbLQRC4z6Of9zhX8ubkoNxiPOTkJy9x0TV5WQF6VbkrKBrkFqGWDDUXVaBbLuq9Z3rd3+NJz4v7d87MyScLrM2cZ2getOlhKlnLfNdSogjTETgSnTVO4oVe7mEMs7s/VYeWzZW7H5OnZAO340vo/UdwHP9DQjR4orTB9jRPYh0i7C0F8DunVn0T5T/hNKI+T0khK19Mt1A+71TGef2D1ck1jb5qJ/DHWssEL6ih7iec0T2vg9RDEKENPqe2NwCAYk4uUbndyYj8Oa40STMCT8cCVIDw1a9JzyX4yxobjZk1cjB9FxKSqO4tFaWR5M277NESEpcek+eWs8T+KtGYv0A+bFBxtGkplXv3oVeHGPcGPCUWcFm9ieLisJT1EuA2CXJVN0Qf9j/b+WUOrMEIQWsCxP0V+b3SB+e9auO0n8tuNZ9Up+wCtPPmKLJAIz6u1G6LIUwmbhVnEdDcN/01Qg7+2Xnj105vDKpxJSvCvZtSirqXuiVmyGj3AIjmm6ACrUYw1OzesAE=
+    - secure: nPTtRwgyaOkXr3aRqaFRKX5SfYZ6vtTCWtxBnfpPFoUsIEGTgWzb720qA/FcCGFyrHRgK3aVADS+quhnvhtvE1LqXmiOAVK+adtLqj4CTp1SHvCKkL+wlO0iJRsFvuXvHxRwwklJYrO8N+hIJQUd9GYF/bn+UEKQCMnnCooX+4mBunH9WmSsxi35RE0wottmL+/GcSpwEz6HkwDzfNltsHXUXs1BwaKd26cFjTZqz3XCP9Ik/AYaZk8ufzge9YsjqoxjhqKLk50Wjn23Ld1Bf5HKeNMmwyCysQJ6Lx7z/nGPHT6nhnfrD5xY+dBIrtLtO35s+s2Z7g4S0AedsT8b+nRezX73ONskmkeOyrL+071rOy8JuSP8uGHurn7d33MKPYUmRy1RO0HeYN+1Zc8xkO4I5GEp11zD9DLhRKVaQaKj+hWTZl2H1hEKr+ugPLQaBXoMSpm7lqIzmP1VT3PLkh0JiXHCLDaTdbAsd2R5hyC3VWpB4Ob6hGWLHp+Ef398HZe41JyCpNhVODKv5LlzkW/wqS1Boa1lRqe04qX9jfKFfnMVeTl+RhtaxnE5dDEL+i2rQr+V9AZH4m1ucKyzXRmitWS2EjfrJhMxBpK+31gqrHjBOhsAfJXqDqVGFIkvxrZczleQcHQf9hyoamYdN1FC12RqkJgWiqyasiaqglc=
